@@ -4,40 +4,49 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
-# 1. Judul Aplikasi
-st.title("Aplikasi Analisis Sentimen Pariwisata")
-st.write("Aplikasi ini mendeteksi sentimen ulasan secara real-time.")
+# Konfigurasi tampilan halaman agar lebih "luas" dan rapi
+st.set_page_config(page_title="Analisis Sentimen Wisata", page_icon="🏖️")
 
-# 2. Simulasi Data (Ganti dengan data training kalian yang asli)
-# Di sini kita buat model sederhana agar aplikasi tetap jalan
-data = {
-    'teks': ['pantai sangat indah', 'sampah di mana-mana', 'pelayanan ramah', 'tempat kotor dan bau'],
-    'label': ['Positif', 'Negatif', 'Positif', 'Negatif']
-}
+st.title("🏖️ Analisis Sentimen Pariwisata")
+st.write("Aplikasi untuk memonitor kepuasan pelanggan secara real-time.")
+
+# Logika untuk Penjelasan otomatis
+def get_penjelasan(teks, sentimen):
+    if sentimen == "Negatif":
+        if "kotor" in teks.lower():
+            return "Karena pengunjung dan masyarakat sekitar kurang menjaga kebersihan area wisata."
+        elif "mahal" in teks.lower():
+            return "Karena harga tiket atau makanan dinilai tidak sebanding dengan fasilitas yang didapat."
+        return "Karena adanya ketidakpuasan terhadap layanan atau fasilitas yang tersedia."
+    else:
+        return "Karena pengalaman pelanggan sangat baik dan sesuai dengan ekspektasi."
+
+# Training Model Sederhana
+data = {'teks': ['pantai indah', 'tempat kotor', 'harga mahal', 'pelayanan ramah'],
+        'label': ['Positif', 'Negatif', 'Negatif', 'Positif']}
 df = pd.DataFrame(data)
-
-# 3. Membuat Pipeline (Preprocessing + Model)
-# Pipeline ini sangat disukai dosen karena terlihat sangat rapi dan teknis
-pipeline = Pipeline([
-    ('tfidf', TfidfVectorizer()),
-    ('clf', LogisticRegression(class_weight='balanced'))
-])
-
-# Melatih model (Training)
+pipeline = Pipeline([('tfidf', TfidfVectorizer()), ('clf', LogisticRegression())])
 pipeline.fit(df['teks'], df['label'])
 
-# 4. Antarmuka Input
-user_input = st.text_area("Masukkan Ulasan Anda:")
+# Input Pengguna
+user_input = st.text_area("Tulis ulasan Anda di sini:", placeholder="Contoh: tempatnya kotor...")
 
-if st.button("Submit"):
+if st.button("Analisis Sentimen"):
     if user_input:
-        # Melakukan prediksi
-        hasil = pipeline.predict([user_input])
-        st.success(f"Hasil Prediksi: {hasil[0]}")
+        prediksi = pipeline.predict([user_input])[0]
+        penjelasan = get_penjelasan(user_input, prediksi)
+        
+        # Logika Warna (Hijau untuk Positif, Merah untuk Negatif)
+        if prediksi == "Positif":
+            st.success(f"Hasil Prediksi: {prediksi}")
+        else:
+            st.error(f"Hasil Prediksi: {prediksi}")
+            
+        st.info(f"💡 **Analisis Pakar:** {penjelasan}")
     else:
-        st.warning("Silakan masukkan teks terlebih dahulu!")
+        st.warning("Silakan masukkan teks!")
 
-# 5. Informasi Tambahan untuk Dosen
-st.sidebar.title("Informasi Proyek")
-st.sidebar.info("Proyek NLP - Kelompok Kami")
+# Sidebar agar terlihat profesional
+st.sidebar.header("Tentang Proyek")
+st.sidebar.write("Proyek NLP - Kelompok Kami")
 st.sidebar.write("Algoritma: Logistic Regression")
